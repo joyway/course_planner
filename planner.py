@@ -111,11 +111,23 @@ def read_schedule_from_file():
 
 def save_csv(plans):
     file_name = f'all_valid_plans_{datetime.now().strftime("%Y-%m-%d_%H%M%S")}.csv'
+    weekday={1: "M", 2: "T", 3: "W", 4: "TH", 5: "F"}
     with open(file_name, 'w', newline='') as c_f:
         writer = csv.writer(c_f)
         writer.writerow([f'{course["code"]}: {course["title"]}'for course in plans[0]])
         for plan in plans:
-            writer.writerow([f'{course["section_id"]} by {course["instructor"]}' for course in plan])
+            plan_row = []
+            for course in plan:
+                timeslots = []
+                for meeting in course["meetings"]:
+                    readable_weekday = weekday[meeting["dayofweek"]]
+                    readable_time = f"{meeting["start_time"]}-{meeting["end_time"]}"
+                    if meeting["method"] == "Online":
+                        timeslots.append(f"{readable_weekday}: {readable_time} O")
+                    else:
+                        timeslots.append(f"{readable_weekday}: {readable_time} L")
+                plan_row.append(f'{course["section_id"]} by {course["instructor"]} - ' + '; '.join(timeslots))
+            writer.writerow(plan_row)
     return file_name
 
 def main():
@@ -136,4 +148,5 @@ def main():
     print(f'✅ {file_name} saved successfully.')
     
 if __name__ == '__main__':
+    print(os.path.curdir)
     main()
